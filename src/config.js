@@ -5,9 +5,9 @@ const { NETWORK } = require(`${basePath}/constants/network.js`);
 const network = NETWORK.eth;
 
 // General metadata for Ethereum
-const namePrefix = "Your Collection";
-const description = "Remember to replace this description";
-const baseUri = "ipfs://NewUriToReplace";
+const namePrefix = "Qbros";
+const description = "Ready to dive into QUBIC history? Meet the first-ever NFT collection on the QUBIC tickchain! A limited series of 10k pieces!\n\nThese awesome mischievous characters are inspired by the legendary QUBIC creator himself: Comes From Beyond.\n\nArt by @m4r71n_4r7";
+const baseUri = "ipfs://ipfs";
 
 const solanaMetadata = {
   symbol: "YC",
@@ -24,15 +24,16 @@ const solanaMetadata = {
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 5,
+    growEditionSizeTo: 200,
     layersOrder: [
       { name: "Background" },
-      { name: "Eyeball" },
-      { name: "Eye color" },
-      { name: "Iris" },
-      { name: "Shine" },
-      { name: "Bottom lid" },
-      { name: "Top lid" },
+      { name: "Body" },
+      { name: "Skin" },
+      { name: "Eyes" },
+      { name: "Top" },
+      { name: "Mouth" },
+      { name: "Glasses" },
+      { name: "Earrings" },
     ],
   },
 ];
@@ -42,8 +43,8 @@ const shuffleLayerConfigurations = false;
 const debugLogs = false;
 
 const format = {
-  width: 512,
-  height: 512,
+  width: 400,
+  height: 400,
   smoothing: false,
 };
 
@@ -68,7 +69,7 @@ const text = {
 };
 
 const pixelFormat = {
-  ratio: 2 / 128,
+  ratio: 48 / 128,
 };
 
 const background = {
