@@ -87,26 +87,29 @@ const getElements = (path) => {
 };
 
 const layersSetup = (layersOrder) => {
-  const layers = layersOrder.map((layerObj, index) => ({
-    id: index,
-    elements: getElements(`${layersDir}/${layerObj.name}/`),
-    name:
-      layerObj.options?.["displayName"] != undefined
-        ? layerObj.options?.["displayName"]
-        : layerObj.name,
-    blend:
-      layerObj.options?.["blend"] != undefined
-        ? layerObj.options?.["blend"]
-        : "source-over",
-    opacity:
-      layerObj.options?.["opacity"] != undefined
-        ? layerObj.options?.["opacity"]
-        : 1,
-    bypassDNA:
-      layerObj.options?.["bypassDNA"] !== undefined
-        ? layerObj.options?.["bypassDNA"]
-        : false,
-  }));
+  const layers = layersOrder.map((layerObj, index) => {
+    const hasOptions = layerObj.options && typeof layerObj.options === "object";
+    return {
+      id: index,
+      elements: getElements(`${layersDir}/${layerObj.name}/`),
+      name:
+        hasOptions && layerObj.options["displayName"] != undefined
+          ? layerObj.options["displayName"]
+          : layerObj.name,
+      blend:
+        hasOptions && layerObj.options["blend"] != undefined
+          ? layerObj.options["blend"]
+          : "source-over",
+      opacity:
+        hasOptions && layerObj.options["opacity"] != undefined
+          ? layerObj.options["opacity"]
+          : 1,
+      bypassDNA:
+        hasOptions && layerObj.options["bypassDNA"] !== undefined
+          ? layerObj.options["bypassDNA"]
+          : false,
+    };
+  });
   return layers;
 };
 
@@ -280,25 +283,57 @@ const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
 
 const createDna = (_layers) => {
   let randNum = [];
-  _layers.forEach((layer) => {
+  let selectedSkinIndex = null;
+  for (let layerIndex = 0; layerIndex < _layers.length; layerIndex++) {
+    const layer = _layers[layerIndex];
+
+    // If we already chose a Body with a specific skin index, force Skin layer to match it
+    if (layer.name === "Skin" && selectedSkinIndex !== null) {
+      const matchingElement = layer.elements.find((el) => {
+        // el.name is already cleaned from extension and rarity weight
+        return el.name.startsWith(`skin${selectedSkinIndex}_`);
+      });
+      if (matchingElement) {
+        randNum.push(
+          `${matchingElement.id}:${matchingElement.filename}${
+            layer.bypassDNA ? "?bypassDNA=true" : ""
+          }`
+        );
+        continue; // proceed to next layer
+      }
+      // if no matching element exists, fall through to weighted random selection
+    }
+
+    // Default weighted-random selection
     var totalWeight = 0;
     layer.elements.forEach((element) => {
       totalWeight += element.weight;
     });
-    // number between 0 - totalWeight
     let random = Math.floor(Math.random() * totalWeight);
+    let chosenElement = null;
     for (var i = 0; i < layer.elements.length; i++) {
-      // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
-        return randNum.push(
-          `${layer.elements[i].id}:${layer.elements[i].filename}${
+        chosenElement = layer.elements[i];
+        randNum.push(
+          `${chosenElement.id}:${chosenElement.filename}${
             layer.bypassDNA ? "?bypassDNA=true" : ""
           }`
         );
+        break;
       }
     }
-  });
+
+    // If this is the Body layer, extract the skin index to be used by Skin layer
+    if (layer.name === "Body" && chosenElement) {
+      const match = chosenElement.filename.match(/_skin(\d+)\./);
+      if (match && match[1]) {
+        selectedSkinIndex = parseInt(match[1]);
+      } else {
+        selectedSkinIndex = null;
+      }
+    }
+  }
   return randNum.join(DNA_DELIMITER);
 };
 
